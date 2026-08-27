@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg">
+  <title>Number Games</title>
+  <style>
+    :root{
+      --bg:#f5f5f5; --card:#fff; --text:#111; --muted:#777; --line:#dedede;
+      --green:#20a86b; --red:#e64b4b; --shadow:0 10px 30px rgba(0,0,0,.07);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    button,input{font:inherit}
+    .app{max-width:760px;margin:0 auto;min-height:100vh;padding:18px 16px 96px}
+    header{text-align:center;padding:18px 0 14px}
+    h1{font-size:28px;margin:0 0 6px}
+    .subtitle{color:var(--muted);font-size:14px}
+    .screen{display:none}
+    .screen.active{display:block}
+    .card{background:var(--card);border:1px solid #eee;border-radius:24px;padding:24px;box-shadow:var(--shadow);margin-bottom:16px}
+    .hero{min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+    .number{font-size:clamp(48px,15vw,92px);font-weight:750;letter-spacing:-3px;line-height:1}
+    .word-groups{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+    .word-group{min-width:95px;padding:8px 10px;border-radius:14px;background:#fafafa;border:1px solid var(--line)}
+    .digits{font-size:30px;font-weight:700}
+    .words{font-size:13px;line-height:1.25;color:#444;margin-top:4px}
+    .controls{display:flex;gap:14px;justify-content:center}
+    button{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:16px;padding:14px 20px;cursor:pointer;transition:.15s}
+    button:active{transform:scale(.98)}
+    .bigbtn{min-width:110px;font-size:26px}
+    .primary{background:#111;color:#fff;border-color:#111;font-weight:650}
+    .danger{border-color:#bbb}
+    .reset{font-size:15px;padding:11px 18px}
+    .section-title{font-size:18px;font-weight:700;margin:0 0 16px}
+    .inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}
+    input{width:100%;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;outline:none}
+    input:focus{border-color:#888}
+    .range-note{font-size:12px;color:var(--muted);margin-top:8px}
+    .random-result{text-align:center;font-size:clamp(54px,16vw,100px);font-weight:800;letter-spacing:-4px;margin:18px 0 24px}
+    .full{width:100%}
+    .quiz-word{text-align:center;font-size:clamp(28px,8vw,50px);font-weight:750;line-height:1.1;margin:28px 0}
+    .question{text-align:center;color:var(--muted);font-size:14px}
+    .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .answer{font-size:22px;font-weight:700;min-height:70px}
+    .answer.correct{background:var(--green);border-color:var(--green);color:#fff}
+    .answer.wrong{background:var(--red);border-color:var(--red);color:#fff}
+    .feedback{text-align:center;min-height:22px;font-weight:650;margin:14px 0 0}
+    nav{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(728px,calc(100% - 28px));background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border:1px solid #e4e4e4;border-radius:22px;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;box-shadow:0 12px 35px rgba(0,0,0,.12)}
+    nav button{border:0;background:transparent;padding:10px 6px;border-radius:15px;font-size:12px;color:#777}
+    nav button.active{background:#111;color:#fff}
+    .error{color:var(--red);font-size:13px;margin-top:8px}
+    @media(max-width:430px){
+      .card{padding:18px}
+      .word-group{min-width:86px}
+      .digits{font-size:26px}
+      .words{font-size:12px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Number Games</h1>
+    <div class="subtitle">Simple number practice</div>
+  </header>
+
+  <main>
+    <section id="counter" class="screen active">
+      <div class="card hero">
+        <div id="counterNumber" class="number">0</div>
+        <div id="counterWords" class="word-groups"></div>
+      </div>
+      <div class="card">
+        <div class="controls">
+          <button class="bigbtn" id="minus">−</button>
+          <button class="bigbtn primary" id="plus">+</button>
+        </div>
+        <div style="text-align:center;margin-top:16px">
+          <button class="reset" id="reset">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="random" class="screen">
+      <div class="card">
+        <h2 class="section-title">Random Number</h2>
+        <div class="inputs">
+          <div><label for="min">From</label><input id="min" type="number" min="0" max="5000000" value="0"></div>
+          <div><label for="max">To</label><input id="max" type="number" min="0" max="5000000" value="15000"></div>
+        </div>
+        <div class="range-note">Choose any range from 0 to 5,000,000.</div>
+        <div id="rangeError" class="error"></div>
+        <div id="randomResult" class="random-result">—</div>
+        <button id="generate" class="primary full">Generate Number</button>
+      </div>
+    </section>
+
+    <section id="quiz" class="screen">
+      <div class="card">
+        <h2 class="section-title">Guess the Number</h2>
+        <div class="question">Which number is this?</div>
+        <div id="quizWord" class="quiz-word">—</div>
+        <div id="answers" class="answers"></div>
+        <div id="feedback" class="feedback"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav>
+  <button data-screen="counter" class="active">Counter</button>
+  <button data-screen="random">Random</button>
+  <button data-screen="quiz">Guess</button>
+</nav>
+
+<script>
+(() => {
+  const MAX = 5000000;
+  let count = 0;
+  let quizAnswer = null;
+  let quizLocked = false;
+
+  const ones = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+  const tens = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+
+  function under1000(n){
+    const out=[];
+    if(n>=100){ out.push(ones[Math.floor(n/100)]+" hundred"); n%=100; }
+    if(n>=20){ out.push(tens[Math.floor(n/10)] + (n%10 ? "-" + ones[n%10] : "")); }
+    else if(n>0){ out.push(ones[n]); }
+    return out.join(" ");
+  }
+
+  function numberToWords(n){
+    n = Math.floor(Number(n));
+    if(n===0) return "zero";
+    const parts=[];
+    if(n>=1000000){ parts.push(under1000(Math.floor(n/1000000))+" million"); n%=1000000; }
+    if(n>=1000){ parts.push(under1000(Math.floor(n/1000))+" thousand"); n%=1000; }
+    if(n>0) parts.push(under1000(n));
+    return parts.join(" ");
+  }
+
+  function formatDots(n){
+    return Math.trunc(n).toLocaleString("en-US").replaceAll(",","." );
+  }
+
+  function renderCounter(){
+    const s = formatDots(count);
+    document.getElementById("counterNumber").textContent = s;
+    const groups = s.split(".");
+    const wordGroups = document.getElementById("counterWords");
+    wordGroups.innerHTML = "";
+    const firstGroup = groups.length === 3 ? groups[0] : groups.length === 2 ? groups[0] : null;
+    groups.forEach((g,i)=>{
+      let value = Number(g);
+      if(groups.length===3 && i===0) value *= 1000000;
+      else if(groups.length===3 && i===1) value *= 1000;
+      else if(groups.length===2 && i===0) value *= 1000;
+      const label = numberToWords(value);
+      const div=document.createElement("div");
+      div.className="word-group";
+      div.innerHTML = `<div class="digits">${g}</div><div class="words">${label}</div>`;
+      wordGroups.appendChild(div);
+    });
+    if(count===0){
+      wordGroups.innerHTML = `<div class="word-group"><div class="digits">0</div><div class="words">zero</div></div>`;
+    }
+  }
+
+  function safeInt(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.trunc(n) : NaN;
+  }
+
+  function generateRandom(){
+    const min=safeInt(document.getElementById("min").value);
+    const max=safeInt(document.getElementById("max").value);
+    const err=document.getElementById("rangeError");
+    if(!Number.isInteger(min)||!Number.isInteger(max)||min<0||max<0||min>MAX||max>MAX||min>max){
+      err.textContent="Enter a valid range from 0 to 5,000,000.";
+      return;
+    }
+    err.textContent="";
+    const n=Math.floor(Math.random()*(max-min+1))+min;
+    document.getElementById("randomResult").textContent=formatDots(n);
+  }
+
+  function makeQuiz(){
+    quizLocked=false;
+    document.getElementById("feedback").textContent="";
+    const n=Math.floor(Math.random()*(3000001));
+    quizAnswer=n;
+    document.getElementById("quizWord").textContent=numberToWords(n);
+
+    const set=new Set([n]);
+    // Plausible distractors: near the answer, often sharing the same thousand/million scale.
+    const span = n < 1000 ? 30 : n < 100000 ? 3000 : n < 1000000 ? 30000 : 100000;
+    let attempts=0;
+    while(set.size<4 && attempts++<100){
+      let delta = Math.floor(Math.random()*(span*2+1))-span;
+      if(delta===0) delta=1;
+      let d=Math.max(0,Math.min(3000000,n+delta));
+      set.add(d);
+    }
+    const arr=[...set];
+    while(arr.length<4) arr.push(Math.floor(Math.random()*3000001));
+    // Shuffle
+    for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+    const container=document.getElementById("answers");
+    container.innerHTML="";
+    arr.forEach(v=>{
+      const b=document.createElement("button");
+      b.className="answer";
+      b.textContent=formatDots(v);
+      b.dataset.value=v;
+      b.addEventListener("click",()=>answerQuiz(b,v));
+      container.appendChild(b);
+    });
+  }
+
+  function answerQuiz(btn,value){
+    if(quizLocked) return;
+    if(value===quizAnswer){
+      quizLocked=true;
+      btn.classList.add("correct");
+      document.getElementById("feedback").textContent="Correct!";
+      setTimeout(makeQuiz,650);
+    }else{
+      btn.classList.add("wrong");
+      document.getElementById("feedback").textContent="Try again.";
+    }
+  }
+
+  document.getElementById("plus").onclick=()=>{ if(count<MAX) count++; renderCounter(); };
+  document.getElementById("minus").onclick=()=>{ if(count>0) count--; renderCounter(); };
+  document.getElementById("reset").onclick=()=>{count=0;renderCounter();};
+  document.getElementById("generate").onclick=generateRandom;
+
+  document.querySelectorAll("nav button").forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+      document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+      document.getElementById(btn.dataset.screen).classList.add("active");
+      btn.classList.add("active");
+      if(btn.dataset.screen==="quiz" && quizAnswer===null) makeQuiz();
+    };
+  });
+
+  renderCounter();
+  generateRandom();
+  makeQuiz();
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+  }
+})();
+</script>
+</body>
+</html>
